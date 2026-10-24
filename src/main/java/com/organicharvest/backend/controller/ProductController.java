@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping; // 🆕 Import add kiya
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +20,7 @@ import com.organicharvest.backend.service.ProductService;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*") // 🆕 YAHAN CHANGE KIYA HAI (Sabko allow karne ke liye)
 public class ProductController {
 
     private final ProductService productService;
@@ -42,7 +42,7 @@ public class ProductController {
         return productService.addProduct(product);
     }
 
-    // 3. 🆕 Product update karne ke liye API
+    // 3. Product update karne ke liye API
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
