@@ -26,7 +26,7 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // 🆕 Admin ki Secret Key (Isko kisi ko na batayein)
+    // Admin ki Secret Key (Isko kisi ko na batayein)
     private static final String ADMIN_SECRET_KEY = "OrganicHarvestAdmin123";
 
     // Constructor Injection
@@ -95,6 +95,30 @@ public class ProductController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // 🆕 5. Bulk Products Add karne ke liye API (Sirf Admin)
+    @PostMapping("/bulk")
+    public ResponseEntity<?> addBulkProducts(
+            @RequestBody List<Product> products,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
+        
+        // Security Check
+        if (!ADMIN_SECRET_KEY.equals(adminKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized! Admin access required."));
+        }
+
+        try {
+            // Loop chala kar saare products save kar do
+            for (Product product : products) {
+                productService.addProduct(product);
+            }
+            return ResponseEntity.ok(Map.of("message", products.size() + " Products added successfully!"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error adding bulk products: " + e.getMessage()));
         }
     }
 }
