@@ -3,6 +3,7 @@ package com.organicharvest.backend.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +32,18 @@ public class OrderService {
     public OrderResponse placeOrder(OrderRequest request) {
         double total = 0.0;
 
-        // 🆕 Helper method: ID ko safely parse karne ke liye
-        // Agar ID "222-500ml" aayi toh ye "222" nikal kar Long me convert karega
-        java.util.function.Function<String, Long> parseProductId = (idStr) -> {
+        // 🆕 Helper: ID ko safely parse karne ke liye (String se Long)
+        // Kyunki frontend se variant ID (jaise "222-500ml") aa rahi hai
+        Function<String, Long> parseProductId = (idStr) -> {
             try {
-                String cleanId = idStr.split("-")[0]; // "-" se pehle wala part
+                String cleanId = idStr.split("-")[0]; // "222-500ml" -> "222"
                 return Long.parseLong(cleanId);
             } catch (Exception e) {
                 throw new RuntimeException("Invalid Product ID format: " + idStr);
             }
         };
 
-        // Step 1: Stock check
+        // Step 1: Stock check karo aur Total calculate karo
         for (var itemReq : request.getItems()) {
             Long actualProductId = parseProductId.apply(itemReq.getProductId().toString());
             
@@ -55,7 +56,7 @@ public class OrderService {
             total += itemReq.getPrice() * itemReq.getQuantity();
         }
 
-        // Step 2: Order Build
+        // Step 2: Order object build karo
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .customerName(request.getCustomerName())
@@ -65,7 +66,7 @@ public class OrderService {
                 .status(OrderStatus.PENDING)
                 .build();
 
-        // Step 3: Items build aur Stock deduct
+        // Step 3: Order Items build karo aur Stock kam karo
         List<OrderItem> items = request.getItems().stream()
                 .map(i -> {
                     Long actualProductId = parseProductId.apply(i.getProductId().toString());
@@ -75,11 +76,11 @@ public class OrderService {
                     productRepository.save(product);
 
                     return OrderItem.builder()
-                            .productId(actualProductId) // 🆕 Ab yahan sirf 222 save hoga
+                            .productId(actualProductId)
                             .productName(i.getProductName())
                             .price(i.getPrice())
                             .quantity(i.getQuantity())
-                            .subtotal(i.getPrice() * i.getQuantity())
+                            .subtotal(i.getPrice() * i.getQuantity()) // Subtotal calculate
                             .order(order)
                             .build();
                 })
@@ -117,9 +118,11 @@ public class OrderService {
         return String.format("ORD-%s-%04d", date, count);
     }
 
+    // 🆕 Yahan type inference fix kiya gaya hai
     private OrderResponse toResponse(Order order) {
         List<OrderResponse.Item> items = order.getItems().stream()
-                .map(i -> OrderResponse.Item.builder()
+                // explicit type hint (<OrderResponse.Item>) add kiya hai
+                .map(i -> OrderResponse.Item.<OrderResponse.Item>builder()
                         .productId(i.getProductId())
                         .productName(i.getProductName())
                         .price(i.getPrice())
