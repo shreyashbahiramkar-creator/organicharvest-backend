@@ -16,19 +16,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "orders")
-@Getter // @Data ki jagah @Getter
-@Setter // @Data ki jagah @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Order {
 
     @Id
@@ -52,12 +42,50 @@ public class Order {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+
+    public Order() {}
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null) this.status = OrderStatus.PENDING;
     }
+
+    // Builder
+    public static OrderBuilder builder() {
+        return new OrderBuilder();
+    }
+
+    public static class OrderBuilder {
+        private Order order = new Order();
+        public OrderBuilder orderNumber(String orderNumber) { order.setOrderNumber(orderNumber); return this; }
+        public OrderBuilder customerName(String customerName) { order.setCustomerName(customerName); return this; }
+        public OrderBuilder phone(String phone) { order.setPhone(phone); return this; }
+        public OrderBuilder address(String address) { order.setAddress(address); return this; }
+        public OrderBuilder totalAmount(Double totalAmount) { order.setTotalAmount(totalAmount); return this; }
+        public OrderBuilder status(OrderStatus status) { order.setStatus(status); return this; }
+        public OrderBuilder items(List<OrderItem> items) { order.setItems(items); return this; }
+        public Order build() { return order; }
+    }
+
+    // Getters & Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getOrderNumber() { return orderNumber; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public Double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 }
