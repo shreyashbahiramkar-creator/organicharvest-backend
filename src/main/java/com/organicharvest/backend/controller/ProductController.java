@@ -5,14 +5,13 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,15 +20,11 @@ import com.organicharvest.backend.service.ProductService;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "*") 
+// 🆕 @CrossOrigin hata diya kyunki SecurityConfig mein globally set hai
 public class ProductController {
 
     private final ProductService productService;
 
-    // Admin ki Secret Key (Isko kisi ko na batayein)
-    private static final String ADMIN_SECRET_KEY = "OrganicHarvestAdmin123";
-
-    // Constructor Injection
     public ProductController(ProductService productService) {
         this.productService = productService;
     }
@@ -42,32 +37,17 @@ public class ProductController {
 
     // 2. Naya product add karne ke liye API (Sirf Admin)
     @PostMapping
-    public ResponseEntity<?> addProduct(
-            @RequestBody Product product,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        
-        // Security Check
-        if (!ADMIN_SECRET_KEY.equals(adminKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Unauthorized! Admin access required."));
-        }
-
+    @PreAuthorize("hasRole('ADMIN')") // 🆕 Security yahan lag gayi
+    public ResponseEntity<?> addProduct(@RequestBody Product product) {
         return ResponseEntity.ok(productService.addProduct(product));
     }
 
     // 3. Product update karne ke liye API (Sirf Admin)
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // 🆕 Security yahan lag gayi
     public ResponseEntity<?> updateProduct(
             @PathVariable Long id, 
-            @RequestBody Product product,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        
-        // Security Check
-        if (!ADMIN_SECRET_KEY.equals(adminKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Unauthorized! Admin access required."));
-        }
-
+            @RequestBody Product product) {
         try {
             Product updatedProduct = productService.updateProduct(id, product);
             return ResponseEntity.ok(updatedProduct);
@@ -79,16 +59,8 @@ public class ProductController {
 
     // 4. Product Delete karne ke liye API (Sirf Admin)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        
-        // Security Check
-        if (!ADMIN_SECRET_KEY.equals(adminKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Unauthorized! Admin access required."));
-        }
-
+    @PreAuthorize("hasRole('ADMIN')") // 🆕 Security yahan lag gayi
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         try {
             productService.deleteProduct(id);
             return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
@@ -98,20 +70,11 @@ public class ProductController {
         }
     }
 
-    // 🆕 5. Bulk Products Add karne ke liye API (Sirf Admin)
+    // 5. Bulk Products Add karne ke liye API (Sirf Admin)
     @PostMapping("/bulk")
-    public ResponseEntity<?> addBulkProducts(
-            @RequestBody List<Product> products,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        
-        // Security Check
-        if (!ADMIN_SECRET_KEY.equals(adminKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Unauthorized! Admin access required."));
-        }
-
+    @PreAuthorize("hasRole('ADMIN')") // 🆕 Security yahan lag gayi
+    public ResponseEntity<?> addBulkProducts(@RequestBody List<Product> products) {
         try {
-            // Loop chala kar saare products save kar do
             for (Product product : products) {
                 productService.addProduct(product);
             }
