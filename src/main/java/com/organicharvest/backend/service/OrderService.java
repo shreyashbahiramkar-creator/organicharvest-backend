@@ -14,9 +14,11 @@ import com.organicharvest.backend.dto.OrderResponse;
 import com.organicharvest.backend.entity.Order;
 import com.organicharvest.backend.entity.OrderItem;
 import com.organicharvest.backend.entity.OrderStatus;
-import com.organicharvest.backend.entity.Product; // <-- Zaroori Import
+import com.organicharvest.backend.entity.Product;
+import com.organicharvest.backend.entity.User;
 import com.organicharvest.backend.repository.OrderRepository;
-import com.organicharvest.backend.repository.ProductRepository; // <-- Zaroori Import
+import com.organicharvest.backend.repository.ProductRepository;
+import com.organicharvest.backend.repository.UserRepository;
 
 @Service
 public class OrderService {
@@ -25,27 +27,31 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
-    private ProductRepository productRepository; // <-- Naya Inject
+    private ProductRepository productRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
-    public OrderResponse placeOrder(OrderRequest request) {
+    public OrderResponse placeOrder(OrderRequest request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + userEmail));
+
         double total = 0.0;
 
-        // 🆕 Step 1: Pehle check karo ki stock available hai ya nahi
         for (var itemReq : request.getItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found: " + itemReq.getProductId()));
 
-            // Agar stock null hai ya quantity se kam hai, toh error throw karo
             if (product.getStock() == null || product.getStock() < itemReq.getQuantity()) {
                 throw new RuntimeException("Out of stock! Only " + (product.getStock() == null ? 0 : product.getStock()) + " left for " + product.getName());
             }
             total += itemReq.getPrice() * itemReq.getQuantity();
         }
 
-        // Step 2: Order Build karo
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
+                .user(user)
                 .customerName(request.getCustomerName())
                 .phone(request.getPhone())
                 .address(request.getAddress())
@@ -53,13 +59,11 @@ public class OrderService {
                 .status(OrderStatus.PENDING)
                 .build();
 
-        // Step 3: Items build karo aur Stock kam karo
         List<OrderItem> items = request.getItems().stream()
                 .map(i -> {
-                    // Stock deduct karo
                     Product product = productRepository.findById(i.getProductId()).get();
                     product.setStock(product.getStock() - i.getQuantity());
-                    productRepository.save(product); // DB mein update karo
+                    productRepository.save(product);
 
                     return OrderItem.builder()
                             .productId(i.getProductId())
@@ -75,6 +79,13 @@ public class OrderService {
         order.setItems(items);
         Order saved = orderRepository.save(order);
         return toResponse(saved);
+    }
+
+    public List<OrderResponse> getOrdersByUser(String userEmail) {
+        return orderRepository.findByUserEmailOrderByCreatedAtDesc(userEmail)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public List<OrderResponse> getAllOrders() {

@@ -13,6 +13,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -27,6 +29,10 @@ public class Order {
 
     @Column(unique = true, nullable = false)
     private String orderNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     private String customerName;
     private String phone;
@@ -52,7 +58,6 @@ public class Order {
         if (this.status == null) this.status = OrderStatus.PENDING;
     }
 
-    // Builder
     public static OrderBuilder builder() {
         return new OrderBuilder();
     }
@@ -60,6 +65,7 @@ public class Order {
     public static class OrderBuilder {
         private Order order = new Order();
         public OrderBuilder orderNumber(String orderNumber) { order.setOrderNumber(orderNumber); return this; }
+        public OrderBuilder user(User user) { order.setUser(user); return this; }
         public OrderBuilder customerName(String customerName) { order.setCustomerName(customerName); return this; }
         public OrderBuilder phone(String phone) { order.setPhone(phone); return this; }
         public OrderBuilder address(String address) { order.setAddress(address); return this; }
@@ -69,11 +75,12 @@ public class Order {
         public Order build() { return order; }
     }
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getOrderNumber() { return orderNumber; }
     public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getPhone() { return phone; }

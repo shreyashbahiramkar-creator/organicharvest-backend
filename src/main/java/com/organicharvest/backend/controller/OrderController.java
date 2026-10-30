@@ -1,10 +1,11 @@
 package com.organicharvest.backend.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,23 +22,27 @@ import com.organicharvest.backend.service.OrderService;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin(origins = "*")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> placeOrder(@RequestBody OrderRequest request) {
-        return ResponseEntity.ok(orderService.placeOrder(request));
+    public ResponseEntity<OrderResponse> placeOrder(@RequestBody OrderRequest request, Principal principal) {
+        return ResponseEntity.ok(orderService.placeOrder(request, principal.getName()));
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<List<OrderResponse>> getMyOrders(Principal principal) {
+        return ResponseEntity.ok(orderService.getOrdersByUser(principal.getName()));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<OrderResponse> getAllOrders() {
         return orderService.getAllOrders();
     }
 
-    // 🆕 NAYA ENDPOINT: Order Number se track karne ke liye
     @GetMapping("/track/{orderNumber}")
     public ResponseEntity<OrderResponse> trackOrder(@PathVariable String orderNumber) {
         try {
@@ -47,8 +52,8 @@ public class OrderController {
         }
     }
 
-    // Admin ke liye status update karne ke liye
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable Long id, 
             @RequestParam OrderStatus status) {
