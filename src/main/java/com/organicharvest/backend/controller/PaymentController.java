@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -22,20 +23,29 @@ public class PaymentController {
     @PostMapping("/create-order")
     public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> data) {
         try {
-            int amount = Integer.parseInt(data.get("amount").toString()) * 100; // Razorpay paise mein leta hai
+            // Amount ko paise me convert karein (Razorpay paise me leta hai)
+            int amount = (int) (Double.parseDouble(data.get("amount").toString()) * 100);
             
             RazorpayClient client = new RazorpayClient(keyId, keySecret);
             
             JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", amount); // Amount in paise (e.g., ₹500 = 50000)
+            orderRequest.put("amount", amount);
             orderRequest.put("currency", "INR");
             orderRequest.put("receipt", "txn_" + System.currentTimeMillis());
 
             Order order = client.orders.create(orderRequest);
             
-            return ResponseEntity.ok(order.toString());
+            // 🆕 Frontend ko sahi JSON bhejein (id, amount, currency aur key)
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", order.get("id"));
+            response.put("amount", order.get("amount"));
+            response.put("currency", order.get("currency"));
+            response.put("key", keyId);
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error creating order: " + e.getMessage());
+            e.printStackTrace(); // Log me error dekhein
+            return ResponseEntity.status(500).body(Map.of("error", "Error creating order: " + e.getMessage()));
         }
     }
 }

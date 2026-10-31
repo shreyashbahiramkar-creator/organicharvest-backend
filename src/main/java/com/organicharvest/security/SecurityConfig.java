@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // 🆕 Import add kiya
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,16 +40,16 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 🆕 Saare OPTIONS (preflight) requests ko allow karein
+                // Preflight (OPTIONS) ko allow karein
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/orders/track/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 
-                // 🆕 Razorpay endpoints
+                // Payment API allow karein
                 .requestMatchers("/api/payment/**").permitAll() 
-                .requestMatchers("/create-order").permitAll() 
                 
                 .requestMatchers("/api/orders/**").authenticated()
                 .anyRequest().authenticated()

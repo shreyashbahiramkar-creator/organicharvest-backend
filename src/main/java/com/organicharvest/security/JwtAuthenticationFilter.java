@@ -22,7 +22,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    // 🆕 Manual Constructor (Lombok hata diya hai)
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
@@ -35,9 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 🆕 Payment aur create-order APIs ko bypass karne ke liye
+        // 🆕 Payment API ko bypass karne ke liye
         String requestPath = request.getServletPath();
-        if (requestPath.startsWith("/api/payment") || requestPath.equals("/create-order")) {
+        if (requestPath.startsWith("/api/payment")) {
             filterChain.doFilter(request, response);
             return;
         }
