@@ -81,6 +81,7 @@ public class OrderService {
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByUser(String userEmail) {
         return orderRepository.findByUserEmailOrderByCreatedAtDesc(userEmail)
                 .stream()
@@ -88,10 +89,12 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public OrderResponse getOrderByNumber(String orderNumber) {
         Order order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new RuntimeException("Order not found with number: " + orderNumber));
@@ -115,15 +118,27 @@ public class OrderService {
         return String.format("ORD-%s-%04d", date, count);
     }
 
+    // 🔥 YAHAN MAIN CHANGE KIYA GAYA HAI
     private OrderResponse toResponse(Order order) {
         List<OrderResponse.Item> items = order.getItems().stream()
-                .map(i -> OrderResponse.Item.builder()
-                        .productId(i.getProductId())
-                        .productName(i.getProductName())
-                        .price(i.getPrice())
-                        .quantity(i.getQuantity())
-                        .subtotal(i.getSubtotal())
-                        .build())
+                .map(i -> {
+                    // Product ID se Product fetch karke uski image nikal rahe hain
+                    String imageUrl = null;
+                    if (i.getProductId() != null) {
+                        imageUrl = productRepository.findById(i.getProductId())
+                                .map(Product::getImage) // Agar aapke Product entity mein image ka naam getImage() nahi hai, toh yahan change karein
+                                .orElse(null);
+                    }
+
+                    return OrderResponse.Item.builder()
+                            .productId(i.getProductId())
+                            .productName(i.getProductName())
+                            .productImage(imageUrl) // Image set kar di
+                            .price(i.getPrice())
+                            .quantity(i.getQuantity())
+                            .subtotal(i.getSubtotal())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return OrderResponse.builder()

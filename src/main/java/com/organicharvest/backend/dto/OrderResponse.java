@@ -40,6 +40,7 @@ public class OrderResponse {
     public static class Item {
         private Long productId;
         private String productName;
+        private String productImage; // 🔥 YEH NAYI LINE ADD KI HAI
         private Double price;
         private Integer quantity;
         private Double subtotal;
@@ -54,6 +55,7 @@ public class OrderResponse {
             private Item item = new Item();
             public ItemBuilder productId(Long productId) { item.setProductId(productId); return this; }
             public ItemBuilder productName(String productName) { item.setProductName(productName); return this; }
+            public ItemBuilder productImage(String productImage) { item.setProductImage(productImage); return this; } // 🔥 YEH NAYI LINE
             public ItemBuilder price(Double price) { item.setPrice(price); return this; }
             public ItemBuilder quantity(Integer quantity) { item.setQuantity(quantity); return this; }
             public ItemBuilder subtotal(Double subtotal) { item.setSubtotal(subtotal); return this; }
@@ -65,6 +67,11 @@ public class OrderResponse {
         public void setProductId(Long productId) { this.productId = productId; }
         public String getProductName() { return productName; }
         public void setProductName(String productName) { this.productName = productName; }
+        
+        // 🔥 YEH NAYE GETTER AUR SETTER ADD KIYE HAIN
+        public String getProductImage() { return productImage; }
+        public void setProductImage(String productImage) { this.productImage = productImage; }
+        
         public Double getPrice() { return price; }
         public void setPrice(Double price) { this.price = price; }
         public Integer getQuantity() { return quantity; }
