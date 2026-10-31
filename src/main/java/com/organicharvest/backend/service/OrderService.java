@@ -49,6 +49,7 @@ public class OrderService {
             total += itemReq.getPrice() * itemReq.getQuantity();
         }
 
+        // 🔥 YAHAN PAYMENT DETAILS ADD KI HAIN
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
@@ -57,6 +58,9 @@ public class OrderService {
                 .address(request.getAddress())
                 .totalAmount(total)
                 .status(OrderStatus.PENDING)
+                .paymentId(request.getPaymentId())
+                .razorpayOrderId(request.getRazorpayOrderId())
+                .paymentStatus(request.getPaymentStatus() != null ? request.getPaymentStatus() : "PENDING")
                 .build();
 
         List<OrderItem> items = request.getItems().stream()
@@ -118,22 +122,20 @@ public class OrderService {
         return String.format("ORD-%s-%04d", date, count);
     }
 
-    // 🔥 YAHAN MAIN CHANGE KIYA GAYA HAI
     private OrderResponse toResponse(Order order) {
         List<OrderResponse.Item> items = order.getItems().stream()
                 .map(i -> {
-                    // Product ID se Product fetch karke uski image nikal rahe hain
                     String imageUrl = null;
                     if (i.getProductId() != null) {
                         imageUrl = productRepository.findById(i.getProductId())
-                                .map(Product::getImage) // Agar aapke Product entity mein image ka naam getImage() nahi hai, toh yahan change karein
+                                .map(Product::getImage)
                                 .orElse(null);
                     }
 
                     return OrderResponse.Item.builder()
                             .productId(i.getProductId())
                             .productName(i.getProductName())
-                            .productImage(imageUrl) // Image set kar di
+                            .productImage(imageUrl)
                             .price(i.getPrice())
                             .quantity(i.getQuantity())
                             .subtotal(i.getSubtotal())

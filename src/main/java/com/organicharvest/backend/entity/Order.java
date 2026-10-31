@@ -50,6 +50,11 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();
 
+    // 🔥 NAYE FIELDS YAHAN ADD KIYE HAIN
+    private String paymentId;
+    private String razorpayOrderId;
+    private String paymentStatus;
+
     public Order() {}
 
     @PrePersist
@@ -72,9 +77,16 @@ public class Order {
         public OrderBuilder totalAmount(Double totalAmount) { order.setTotalAmount(totalAmount); return this; }
         public OrderBuilder status(OrderStatus status) { order.setStatus(status); return this; }
         public OrderBuilder items(List<OrderItem> items) { order.setItems(items); return this; }
+        
+        // 🔥 BUILDER MEIN NAYE METHODS ADD KIYE HAIN
+        public OrderBuilder paymentId(String paymentId) { order.setPaymentId(paymentId); return this; }
+        public OrderBuilder razorpayOrderId(String razorpayOrderId) { order.setRazorpayOrderId(razorpayOrderId); return this; }
+        public OrderBuilder paymentStatus(String paymentStatus) { order.setPaymentStatus(paymentStatus); return this; }
+        
         public Order build() { return order; }
     }
 
+    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getOrderNumber() { return orderNumber; }
@@ -95,4 +107,12 @@ public class Order {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+
+    // 🔥 NAYE FIELDS KE GETTERS AUR SETTERS
+    public String getPaymentId() { return paymentId; }
+    public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
+    public String getRazorpayOrderId() { return razorpayOrderId; }
+    public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
 }
