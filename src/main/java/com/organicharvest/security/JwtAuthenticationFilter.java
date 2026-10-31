@@ -15,7 +15,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.RequiredArgsConstructor; // 🔥 YEH IMPORT MISSING THA
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 🔥 YEH LINE ADD KI HAI: Payment API ko bypass karne ke liye
+        // 🔥 Payment API ko bypass karne ke liye
         String requestPath = request.getServletPath();
         if (requestPath.startsWith("/api/payment")) {
             filterChain.doFilter(request, response);
