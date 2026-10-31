@@ -42,6 +42,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/orders/track/**").permitAll()
+                
+                // 🔥 YEH NAYI LINE ADD KI HAI (Payment API ko allow karne ke liye)
+                .requestMatchers("/api/payment/**").permitAll() 
+                
                 .requestMatchers("/api/orders/**").authenticated()
                 .anyRequest().authenticated()
             )
