@@ -43,8 +43,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/orders/track/**").permitAll()
                 
-                // 🔥 YEH NAYI LINE ADD KI HAI (Payment API ko allow karne ke liye)
+                // 🆕 Razorpay endpoints ko allow karein (dono paths)
                 .requestMatchers("/api/payment/**").permitAll() 
+                .requestMatchers("/create-order").permitAll() 
                 
                 .requestMatchers("/api/orders/**").authenticated()
                 .anyRequest().authenticated()
